@@ -10,7 +10,7 @@ on:
         description: 'The name of the docker image to build'
         type: string
         required: false
-        default: 'apache'
+        default: 'wsdatabase'
         
       dockerfile_path:
         description: 'The path of the Dockerfile'
@@ -24,9 +24,16 @@ on:
         required: false
         default: '.'      
 
+
+
 jobs:
   
   scan:
+    env:
+      image_name: ${{inputs.image_name || 'wsdatabase'}}
+      dockerfile_path: ${{inputs.dockerfile_path || './Dockerfile'}}
+      context: ${{inputs.context || '.'}}
+
     permissions:
       contents: read
       security-events: write      
@@ -37,12 +44,12 @@ jobs:
 
       - name: Build an image from Dockerfile
         run: |
-          docker build -t ${{ inputs.image_name }} -f ${{ inputs.dockerfile_path }} ${{ inputs.context }}
+          docker build -t ${{ vars.image_name }} -f ${{ vars.dockerfile_path }} ${{ vars.context }}
 
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@master
         with:
-          image-ref: ${{ inputs.image_name }}
+          image-ref: ${{ vars.image_name }}
           format: 'sarif'
           output: 'trivy-results.sarif'
 
